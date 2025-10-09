@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserMapper userMapper = new UserMapper();
+    private final UserMapper userMapper;
     private final SessionService sessionService;
 
     public UserResponseDto register(UserRequestDto userRequestDto) {

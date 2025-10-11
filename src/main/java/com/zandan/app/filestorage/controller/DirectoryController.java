@@ -2,8 +2,7 @@ package com.zandan.app.filestorage.controller;
 
 import com.zandan.app.filestorage.dto.DirectoryCreatedResponse;
 import com.zandan.app.filestorage.dto.ResourceDto;
-import com.zandan.app.filestorage.service.DirectoryService;
-import com.zandan.app.filestorage.service.PathService;
+import com.zandan.app.filestorage.service.impl.DirectoryServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +15,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DirectoryController {
 
-    private final DirectoryService directoryService;
+    private final DirectoryServiceImpl directoryServiceImpl;
 
     @GetMapping()
     public ResponseEntity<List<ResourceDto>> getResourcesFromDirectory(@RequestParam String path) {
-        return ResponseEntity.ok().body(directoryService.getResourcesFromDirectory(path));
+        return ResponseEntity.ok().body(directoryServiceImpl.getResourcesFromDirectory(path));
     }
 
     @PostMapping()
     public ResponseEntity<DirectoryCreatedResponse> createDirectory(@RequestParam String path) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(directoryService.createDirectory(path));
+        return ResponseEntity.status(HttpStatus.CREATED).body(directoryServiceImpl.createDirectory(path));
     }
 }

@@ -5,5 +5,4 @@ public record ResourceDto(
         String name,
         Long size,
         ResourceType type
-) {
-}
+) {}

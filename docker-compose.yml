@@ -23,3 +23,30 @@ services:
     image: redis:7.0.12
     ports:
       - "6379:6379"
+    container_name: redis
+
+  kafka:
+    image: bitnamilegacy/kafka:latest
+    ports:
+      - "9093:9093"
+    container_name: kafka
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9095
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9091,CONTROLLER://:9095,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9091,EXTERNAL://${HOSTNAME:-localhost}:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9091
+      KAFKA_CLUSTERS_0_ZOOKEEPER: ""
+    depends_on:
+      - kafka

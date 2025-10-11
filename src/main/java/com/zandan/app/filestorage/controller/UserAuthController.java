@@ -2,12 +2,10 @@ package com.zandan.app.filestorage.controller;
 
 import com.zandan.app.filestorage.dto.UserRequestDto;
 import com.zandan.app.filestorage.dto.UserResponseDto;
-import com.zandan.app.filestorage.service.UserService;
+import com.zandan.app.filestorage.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserAuthController {
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
 
     @Operation(
             summary = "Зарегистрироваться",
@@ -40,7 +38,7 @@ public class UserAuthController {
         if (bindingResult.hasErrors()) {
             throw new BindException(bindingResult);
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(userRequestDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userServiceImpl.register(userRequestDto));
     }
 
     @Operation(
@@ -53,7 +51,7 @@ public class UserAuthController {
     @PostMapping("/sign-in")
     public ResponseEntity<UserResponseDto> authorizeUser(@RequestBody UserRequestDto userRequestDto,
                                                          HttpServletRequest request) {
-        return ResponseEntity.ok().body(userService.authorize(userRequestDto, request));
+        return ResponseEntity.ok().body(userServiceImpl.authorize(userRequestDto, request));
     }
 
     @Operation(

@@ -1,7 +1,7 @@
 package com.zandan.app.filestorage.controller;
 
 import com.zandan.app.filestorage.dto.ResourceDto;
-import com.zandan.app.filestorage.service.FileService;
+import com.zandan.app.filestorage.service.impl.ResourceServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResourceController {
 
-    private final FileService fileService;
+    private final ResourceServiceImpl resourceServiceImpl;
 
     @Operation(
             summary = "Загрузка ресурсов в облако",
@@ -32,7 +32,7 @@ public class ResourceController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<ResourceDto>> uploadResources(@RequestParam String path,
                                                     @RequestPart("object") List<MultipartFile> files) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(fileService.uploadFiles(path, files));
+        return ResponseEntity.status(HttpStatus.CREATED).body(resourceServiceImpl.uploadResources(path, files));
     }
 
     @Operation(
@@ -45,7 +45,7 @@ public class ResourceController {
     )
     @GetMapping()
     public ResponseEntity<ResourceDto> showResource(@RequestParam String path) {
-        return ResponseEntity.ok().body(fileService.getFile(path));
+        return ResponseEntity.ok().body(resourceServiceImpl.getResource(path));
     }
 
     @Operation(
@@ -59,7 +59,7 @@ public class ResourceController {
     )
     @DeleteMapping()
     public ResponseEntity<Void> deleteResource(@RequestParam String path) {
-        fileService.deleteFile(path);
+        resourceServiceImpl.deleteResource(path);
         return ResponseEntity.noContent().build();
     }
 
@@ -75,10 +75,10 @@ public class ResourceController {
     @SneakyThrows
     @GetMapping("/download")
     public void downloadResource(@RequestParam String path, HttpServletResponse response) {
-        ResourceDto resource = fileService.getFile(path);
+        ResourceDto resource = resourceServiceImpl.getResource(path);
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + resource.name() + "\"");
-        fileService.downloadFile(path, response.getOutputStream());
+        resourceServiceImpl.downloadFile(path, response.getOutputStream());
     }
 
     @Operation(
@@ -92,10 +92,10 @@ public class ResourceController {
                     @ApiResponse(responseCode = "409", description = "Ресурс лежащий по этому пути уже существует")
             }
     )
-    @PutMapping("/move")
+    @GetMapping("/move")
     public ResponseEntity<ResourceDto> moveResource(@RequestParam("from") String fromPath,
                                                     @RequestParam("to") String toPath) {
-        return ResponseEntity.ok().body(fileService.moveFile(fromPath, toPath));
+        return ResponseEntity.ok().body(resourceServiceImpl.moveResource(fromPath, toPath));
     }
 
     @Operation(
@@ -109,6 +109,6 @@ public class ResourceController {
     )
     @GetMapping("/search")
     public ResponseEntity<List<ResourceDto>> searchResources(@RequestParam String query) {
-        return ResponseEntity.ok().body(fileService.searchFiles(query));
+        return ResponseEntity.ok().body(resourceServiceImpl.searchResources(query));
     }
 }

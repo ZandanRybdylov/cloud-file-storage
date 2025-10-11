@@ -1,4 +1,4 @@
-package com.zandan.app.filestorage.service;
+package com.zandan.app.filestorage.service.impl;
 
 import com.zandan.app.filestorage.repository.UserRepository;
 import com.zandan.app.filestorage.security.MyUserDetails;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class MyUserDetailService implements UserDetailsService {
+public class MyUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 

@@ -7,8 +7,8 @@ import com.zandan.app.filestorage.exception.IncorrectLoginOrPasswordException;
 import com.zandan.app.filestorage.exception.UserAlreadyExistsException;
 import com.zandan.app.filestorage.model.User;
 import com.zandan.app.filestorage.repository.UserRepository;
-import com.zandan.app.filestorage.service.SessionService;
-import com.zandan.app.filestorage.service.UserService;
+import com.zandan.app.filestorage.service.impl.SessionServiceImpl;
+import com.zandan.app.filestorage.service.impl.UserServiceImpl;
 import com.zandan.app.filestorage.util.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -27,16 +27,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+public class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
     @Mock
     private UserMapper userMapper;
     @Mock
-    private SessionService sessionService;
+    private SessionServiceImpl sessionServiceImpl;
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Test
     public void register_RequestIsValid_ShouldReturnUserResponseDto() {
@@ -52,7 +52,7 @@ public class UserServiceTest {
         when(userMapper.toUserResponseDto(savedUser)).thenReturn(responseDto);
 
         //when
-        UserResponseDto result = userService.register(requestDto);
+        UserResponseDto result = userServiceImpl.register(requestDto);
 
         //then
         assertThat(result).isEqualTo(responseDto);
@@ -70,7 +70,7 @@ public class UserServiceTest {
 
         when(userRepository.findByLogin(requestDto.username())).thenReturn(Optional.of(existingUser));
         //when
-        assertThatThrownBy(() -> userService.register(requestDto)
+        assertThatThrownBy(() -> userServiceImpl.register(requestDto)
         //then
             ).isInstanceOf(UserAlreadyExistsException.class)
                 .hasMessageContaining("User with this username is already registered");
@@ -87,7 +87,7 @@ public class UserServiceTest {
         when(userRepository.findByLogin(requestDto.username())).thenReturn(Optional.of(user));
         when(userMapper.toUserResponseDto(user)).thenReturn(responseDto);
         //when
-        var result = userService.authorize(requestDto, request);
+        var result = userServiceImpl.authorize(requestDto, request);
         //then
         assertThat(result).isEqualTo(responseDto);
     }
@@ -100,7 +100,7 @@ public class UserServiceTest {
 
         when(userRepository.findByLogin(requestDto.username())).thenReturn(Optional.empty());
         //when
-        assertThatThrownBy(() -> userService.authorize(requestDto, request)
+        assertThatThrownBy(() -> userServiceImpl.authorize(requestDto, request)
         //then
                 ).isInstanceOf(IncorrectLoginOrPasswordException.class)
                 .hasMessageContaining("User not found");
@@ -114,7 +114,7 @@ public class UserServiceTest {
 
         when(userRepository.findByLogin(requestDto.username())).thenReturn(Optional.of(user));
         //when
-        assertThatThrownBy(() -> userService.authorize(requestDto, request)
+        assertThatThrownBy(() -> userServiceImpl.authorize(requestDto, request)
         //then
                 ).isInstanceOf(IncorrectLoginOrPasswordException.class)
                 .hasMessageContaining("Wrong password");

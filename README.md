@@ -29,4 +29,3 @@
 | **Утилиты**             | Lombok, OkHttp                                     |
 | **Тестирование**        | JUnit 5, Spring Boot Test, Testcontainers          |
 | **Контейнеризация**     | Docker (PostgreSQL, Kafka, Redis, MinIO, Kafka UI) |
-L, Kafka, Redis, MinIO, Kafka UI)

@@ -24,11 +24,11 @@ public class KafkaServiceImpl implements KafkaService {
                 .getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
 
-        FileOperationEvent fileUploadedEvent = new FileOperationEvent(resource.path(), resource.name(),
+        FileOperationEvent fileOperationEvent = new FileOperationEvent(resource.path(), resource.name(),
                 resource.size(), resource.type(), username, type);
 
-        log.info("FileUploaded event: {}", fileUploadedEvent);
-        kafkaTemplate.send("file-operated-topic", fileUploadedEvent);
-        log.info("Send file uploaded event: {}", fileUploadedEvent);
+        log.info("FileOperated event: {}", fileOperationEvent);
+        kafkaTemplate.send("file-operated-topic", fileOperationEvent);
+        log.info("Send file operated event: {}", fileOperationEvent);
     }
 }

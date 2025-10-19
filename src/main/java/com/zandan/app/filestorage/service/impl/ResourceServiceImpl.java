@@ -25,7 +25,8 @@ public class ResourceServiceImpl implements ResourceService {
 
         Map<String, MultipartFile> fileMap = new HashMap<>();
         for (MultipartFile file : files) {
-            fileMap.put(fullPath + file.getOriginalFilename(), file);
+            String objectPath = fullPath + file.getOriginalFilename();
+            fileMap.put(objectPath, file);
         }
 
         return minioServiceImpl.saveResources(fileMap);
@@ -42,8 +43,9 @@ public class ResourceServiceImpl implements ResourceService {
         String fullPath = pathServiceImpl.getFullPath(path);
         if (fullPath.endsWith("/")) {
             minioServiceImpl.deleteFolder(fullPath);
+        } else {
+            minioServiceImpl.deleteFile(fullPath);
         }
-        minioServiceImpl.deleteFile(fullPath);
     }
 
     @Override

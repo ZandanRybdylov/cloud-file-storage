@@ -25,7 +25,7 @@ public class KafkaServiceImpl implements KafkaService {
         String username = userDetails.getUsername();
 
         FileOperationEvent fileOperationEvent = new FileOperationEvent(resource.path(), resource.name(),
-                resource.size(), resource.type(), username, type);
+                resource.size(), resource.type(), username, type, username+"@gmail.com");
 
         log.info("FileOperated event: {}", fileOperationEvent);
         kafkaTemplate.send("file-operated-topic", fileOperationEvent);

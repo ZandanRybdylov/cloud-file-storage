@@ -3,6 +3,8 @@ package com.zandan.app.filestorage.service.impl;
 import com.zandan.app.filestorage.dto.DirectoryCreatedResponse;
 import com.zandan.app.filestorage.dto.ResourceDto;
 import com.zandan.app.filestorage.service.DirectoryService;
+import com.zandan.app.filestorage.service.MinioService;
+import com.zandan.app.filestorage.service.PathService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +14,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DirectoryServiceImpl implements DirectoryService {
 
-    private final MinioServiceImpl minioServiceImpl;
-    private final PathServiceImpl pathServiceImpl;
+    private final MinioService minioServiceImpl;
+    private final PathService pathServiceImpl;
 
     @Override
     public List<ResourceDto> getResourcesFromDirectory(String path) {

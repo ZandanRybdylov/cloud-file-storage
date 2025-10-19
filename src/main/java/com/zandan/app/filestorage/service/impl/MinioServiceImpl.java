@@ -7,6 +7,7 @@ import com.zandan.app.filestorage.event.OperationType;
 import com.zandan.app.filestorage.exception.ResourceAlreadyExistsException;
 import com.zandan.app.filestorage.exception.ResourceNotFoundException;
 import com.zandan.app.filestorage.service.MinioService;
+import com.zandan.app.filestorage.service.PathService;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
@@ -30,6 +31,7 @@ public class MinioServiceImpl implements MinioService {
 
     private final MinioClient minioClient;
     private final KafkaServiceImpl kafkaServiceImpl;
+    private final PathService pathServiceImpl;
 
     @Value("${minio.bucket}")
     private String bucketName;
@@ -68,7 +70,8 @@ public class MinioServiceImpl implements MinioService {
                                 .build()
                 );
             }
-            ResourceDto resource = new ResourceDto(path, extractFileName(path),
+            ResourceDto resource = new ResourceDto(pathServiceImpl.extractPathWithoutFileName(path, extractFileName(path)),
+                    extractFileName(path),
                     Long.valueOf(file.getSize()), ResourceType.FILE);
             resources.add(resource);
 
@@ -78,32 +81,30 @@ public class MinioServiceImpl implements MinioService {
         return resources;
     }
 
-    @SneakyThrows
     @Override
+    @SneakyThrows
     public ResourceDto getResource(String path) {
-        StatObjectResponse stat = null;
         try {
-            stat = minioClient.statObject(
+            StatObjectResponse stat = minioClient.statObject(
                     StatObjectArgs.builder()
                             .bucket(bucketName)
                             .object(path)
                             .build()
             );
+
+            ResourceType type = path.endsWith("/") ? ResourceType.DIRECTORY : ResourceType.FILE;
+            long size = type == ResourceType.FILE ? stat.size() : 0L;
+
+            return new ResourceDto(pathServiceImpl.extractPathWithoutFileName(path, extractFileName(path)), extractFileName(path), size, type);
+
         } catch (ErrorResponseException e) {
-            if("NoSuchKey".equals(e.errorResponse().code())) {
-                throw new ResourceNotFoundException("File not exist or path %s is incorrect"
-                        .formatted(path));
+            if ("NoSuchKey".equals(e.errorResponse().code())) {
+                throw new ResourceNotFoundException("Resource not found: " + path);
             }
             throw e;
         }
-
-        boolean isDirectory = path.endsWith("/");
-        if (isDirectory) {
-            return new ResourceDto(path+"/", extractFileName(path)+"/", stat.size(), ResourceType.DIRECTORY);
-        } else {
-            return new ResourceDto(path, extractFileName(path), stat.size(), ResourceType.FILE);
-        }
     }
+
 
 
     @SneakyThrows
@@ -223,39 +224,51 @@ public class MinioServiceImpl implements MinioService {
     @SneakyThrows
     @Override
     public List<ResourceDto> getResourcesFromDirectory(String path) {
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
+
         List<ResourceDto> resources = new ArrayList<>();
+
         Iterable<Result<Item>> results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix(path)
-                            .recursive(false)
-                            .build());
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .prefix(path)
+                        .recursive(false)
+                        .build()
+        );
 
         for (Result<Item> result : results) {
             Item item = result.get();
+
+            if (item.objectName().equals(path)) continue;
+
             resources.add(new ResourceDto(
-                    path,
+                    pathServiceImpl.extractPathWithoutFileName(item.objectName(), extractFileName(item.objectName())),
                     extractFileName(item.objectName()),
-                    item.isDir() ? 0 : item.size(),
+                    item.isDir() ? 0L : item.size(),
                     item.isDir() ? ResourceType.DIRECTORY : ResourceType.FILE
             ));
         }
 
-        if (resources.size() == 0) {
-            throw new ResourceNotFoundException("Directory not found");
-        }
         return resources;
     }
 
+
     //TODO: обработать исключения
-    @SneakyThrows
     @Override
+    @SneakyThrows
     public DirectoryCreatedResponse createDirectory(String path) {
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
+
         try {
             if (getResource(path).type() == ResourceType.DIRECTORY) {
                 throw new ResourceAlreadyExistsException("Directory by path %s already exists".formatted(path));
             }
         } catch (ResourceNotFoundException e) {}
+
         minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
@@ -264,8 +277,9 @@ public class MinioServiceImpl implements MinioService {
                         .build()
         );
 
-        return new DirectoryCreatedResponse(path+"/", extractFileName(path)+"/", ResourceType.DIRECTORY);
+        return new DirectoryCreatedResponse(path, extractFileName(path), ResourceType.DIRECTORY);
     }
+
 
     //TODO: обработать исключения
     @SneakyThrows

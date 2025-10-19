@@ -17,4 +17,9 @@ public class PathServiceImpl implements PathService {
             return userDetails.getUsername() + "/" + path;
         }
     }
+
+    @Override
+    public String extractPathWithoutFileName(String path, String fileName) {
+        return path.replace(fileName, "");
+    }
 }
